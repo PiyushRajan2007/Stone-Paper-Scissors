@@ -7,6 +7,84 @@ const userScorePara = document.querySelector("#user-score");
 const compScorePara = document.querySelector("#computer-score");
 const resetBtn = document.querySelector("#reset-btn");
 
+const installScreenshotProtection = () => {
+  const warning = document.createElement("div");
+  warning.setAttribute("role", "alert");
+  warning.textContent = "Screenshots are disabled on this page.";
+  Object.assign(warning.style, {  
+    position: "fixed",
+    inset: "0",
+    zIndex: "9999",
+    display: "none",
+    placeItems: "center",
+    background: "rgba(0, 0, 0, 0.92)",
+    color: "#fff",
+    fontSize: "clamp(1.25rem, 4vw, 2.5rem)",
+    fontWeight: "800",
+    textAlign: "center",
+    padding: "2rem",
+  });
+  document.body.appendChild(warning);
+
+  let warningTimer;
+
+  const showWarning = () => {
+    warning.style.display = "grid";
+    clearTimeout(warningTimer);
+    warningTimer = setTimeout(() => {
+      warning.style.display = "none";
+    }, 1800);
+  };
+
+  const clearClipboard = async () => {
+    try {
+      await navigator.clipboard?.writeText("");
+    } catch {
+      // Some browsers block clipboard writes unless the page has permission.
+    }
+  };
+
+  const isScreenshotShortcut = (event) => {
+    const key = event.key.toLowerCase();
+
+    return (
+      key === "printscreen" ||
+      (event.altKey && key === "printscreen") ||
+      ((event.ctrlKey || event.metaKey) &&
+        event.shiftKey &&
+        ["s", "3", "4", "5"].includes(key))
+    );
+  };
+
+  const blockCaptureAttempt = (event) => {
+    if (!isScreenshotShortcut(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    showWarning();
+    clearClipboard();
+  };
+
+  document.addEventListener("keydown", blockCaptureAttempt, true);
+  document.addEventListener("keyup", blockCaptureAttempt, true);
+  document.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+    showWarning();
+  });
+
+  window.addEventListener("blur", () => {
+    document.body.style.filter = "blur(18px)";
+  });
+
+  window.addEventListener("focus", () => {
+    document.body.style.filter = "";
+  });
+};
+
+installScreenshotProtection();
+
 const winSound = new Audio(
   "https://www.soundjay.com/misc/sounds/magic-chime-01.mp3",
 );
